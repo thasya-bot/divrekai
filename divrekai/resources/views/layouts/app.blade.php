@@ -2,22 +2,45 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('KAI DIVRE I SUMUT')</title>
+    <title>@yield('title', 'KAI DIVRE I SUMUT')</title>
+
+    {{-- TAILWIND --}}
     @vite('resources/css/app.css')
 </head>
-<body class="font-sans">
+<body class="font-sans bg-gray-100">
 
     {{-- NAVBAR --}}
-    <nav class="flex items-center justify-between px-10 py-4 border-b">
+    <nav class="flex items-center justify-between px-10 py-0 border-b bg-white">
         <div class="flex items-center gap-2">
-            <img src="{{ asset('img/logo-kai.png') }}" class="h-10">
-            <span class="font-bold text-blue-900">DIVRE I SUMUT</span>
+            <img src="{{ asset('img/logo-kai.png') }}" class="h-28">
         </div>
-        <ul class="flex gap-8 text-blue-900 font-semibold">
-            <li><a href="/" class="hover:text-orange-500">BERANDA</a></li>
-            <li><a href="/pendapatan">INPUT PENDAPATAN</a></li>
-            <li><a href="/kontak">KONTAK</a></li>
+
+        @auth
+        <ul class="flex gap-8 text-[#231f5c] font-semibold items-center">
+            @if(auth()->user()->role->username === 'admin_pic')
+                <li><a href="/dashboard-admin">Dashboard Admin</a></li>
+            @endif
+
+            @if(auth()->user()->role->username === 'admin_unit')
+                <li><a href="{{route('pendapatan.index')}}">LAPORAN</a></li>
+            @endif
+
+            @if(auth()->user()->role->username === 'admin_unit')
+                <li><a href="{{route('pendapatan.input')}}">INPUT PENDAPATAN</a></li>
+            @endif
+
+            @if(auth()->user()->role->username === 'pimpinan')
+                <li><a href="/dashboard-pimpinan">Dashboard Pimpinan</a></li>
+            @endif
+
+            <li>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="text-red-600">LOGOUT</button>
+                </form>
+            </li>
         </ul>
+        @endauth
     </nav>
 
     {{-- CONTENT --}}

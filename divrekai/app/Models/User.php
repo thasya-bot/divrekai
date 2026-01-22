@@ -32,16 +32,20 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-
-    // RELASI KE ROLE
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
 
-    // RELASI KE UNIT
+    // User milik 1 Unit
     public function unit()
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    // User membuat banyak Pendapatan
+    public function pendapatan()
+    {
+        return $this->hasMany(Pendapatan::class, 'created_by');
     }
 }
