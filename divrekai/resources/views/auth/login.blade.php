@@ -1,73 +1,106 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | DIVRE KAI</title>
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+    {{-- Font Montserrat --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        <!-- Username -->
-        <div>
-            <x-input-label for="username" value="Username" />
+    @vite('resources/css/app.css')
+</head>
 
-            <x-text-input
-                id="username"
-                class="block mt-1 w-full"
-                type="text"
-                name="username"
-                :value="old('username')"
-                required
-                autofocus
-                autocomplete="username"
-            />
+<body class="bg-gray-100 font-['Montserrat'] min-h-screen flex items-center justify-center">
 
-            <x-input-error :messages="$errors->get('username')" class="mt-2" />
+<div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+
+    {{-- LEFT IMAGE --}}
+    <div class="hidden md:block">
+        <img
+            src="{{ asset('img/login-kai.png') }}"
+            alt="KAI"
+            class="w-full h-full object-cover object-[22%_75%]"
+        >
+    </div>
+
+    {{-- RIGHT FORM --}}
+    <div class="p-6 flex flex-col justify-center">
+        <div class="mb-8 text-center">
+            <img src="{{ asset('img/logo-kai.png') }}" class="mx-auto mb-2 w-40 md:w-44 h-auto object-contain" alt="KAI Logo">
+            <p class="text-sm text-gray-500 mt-1">LOGIN</p>
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" value="Password" />
+        {{-- SESSION STATUS --}}
+        @if (session('status'))
+            <div class="mb-4 text-sm text-green-600 text-center">
+                {{ session('status') }}
+            </div>
+        @endif
 
-            <x-text-input
-                id="password"
-                class="block mt-1 w-full"
-                type="password"
-                name="password"
-                required
-                autocomplete="current-password"
-            />
+        <form method="POST" action="{{ route('login') }}" class="space-y-5">
+            @csrf
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember" class="inline-flex items-center">
+            {{-- USERNAME --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">
+                    Username
+                </label>
                 <input
-                    id="remember"
-                    type="checkbox"
-                    name="remember"
-                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                    type="text"
+                    name="username"
+                    value="{{ old('username') }}"
+                    required
+                    autofocus
+                    class="w-full rounded-lg bg-gray-100 border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 >
-                <span class="ms-2 text-sm text-gray-600">
+                @error('username')
+                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- PASSWORD --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">
+                    Password
+                </label>
+                <input
+                    type="password"
+                    name="password"
+                    required
+                    class="w-full rounded-lg bg-gray-100 border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                >
+                @error('password')
+                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- REMEMBER ME --}}
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center gap-2 text-gray-600">
+                    <input type="checkbox" name="remember" class="rounded border-gray-300">
                     Remember me
-                </span>
-            </label>
-        </div>
+                </label>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a
-                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md
-                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    href="{{ route('password.request') }}"
-                >
-                    Forgot your password?
-                </a>
-            @endif
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" class="text-orange-600 hover:underline">
+                        Lupa password?
+                    </a>
+                @endif
+            </div>
 
-            <x-primary-button class="ms-3">
-                Log in
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+            {{-- BUTTON --}}
+            <button
+                type="submit"
+                class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 rounded-lg transition"
+            >
+                LOGIN
+            </button>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>

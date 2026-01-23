@@ -7,14 +7,37 @@ use App\Http\Controllers\TargetPendapatanController;
 
 /*
 |--------------------------------------------------------------------------
-| ROOT
+| BERANDA (PUBLIC)
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    if (!auth()->check()) {
-        return redirect('/login');
+    return view('public.beranda');
+})->name('beranda');
+
+/*
+|--------------------------------------------------------------------------
+| GERBANG INPUT PENDAPATAN (PAKSA LOGIN)
+|--------------------------------------------------------------------------
+| Siapa pun klik Input Pendapatan
+| → PASTI login dulu
+*/
+Route::get('/input-pendapatan', function () {
+    // 🔥 paksa logout kalau masih login
+    if (auth()->check()) {
+        auth()->logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
     }
 
+    return redirect()->route('login');
+})->name('input.pendapatan');
+
+/*
+|--------------------------------------------------------------------------
+| REDIRECT SETELAH LOGIN (SESUIAI ROLE)
+|--------------------------------------------------------------------------
+*/
+Route::get('/redirect-dashboard', function () {
     if (!auth()->user()->role) {
         abort(403, 'Role belum diatur');
     }
@@ -23,9 +46,9 @@ Route::get('/', function () {
         'admin_pic'  => redirect()->route('admin.dashboard'),
         'admin_unit' => redirect()->route('pendapatan.index'),
         'pimpinan'   => redirect()->route('pimpinan.dashboard'),
-        default      => abort(403),
+        default      => redirect()->route('beranda'),
     };
-});
+})->middleware('auth')->name('redirect.dashboard');
 
 /*
 |--------------------------------------------------------------------------
