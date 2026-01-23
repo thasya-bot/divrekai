@@ -3,7 +3,7 @@
 @section('title', 'Dashboard Pendapatan')
 
 @section('content')
-<div class="max-w-8xl mx-auto px-6 py-8 bg-white min-h-screen">
+<div class="max-w-8xl mx-auto px-8 py-8 bg-white min-h-screen">
 
     {{-- JUDUL --}}
     <div class="mb-8 text-center">

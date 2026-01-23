@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AdminPIC\PendapatanUnitController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PendapatanController;
 use App\Http\Controllers\TargetPendapatanController;
+use App\Http\Controllers\AdminPIC\UnitController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +22,7 @@ Route::get('/', function () {
     }
 
     return match (auth()->user()->role->username) {
-        'admin_pic'  => redirect()->route('admin.dashboard'),
+        'admin_pic'  => redirect()->route('admin.pic.unit.index'),
         'admin_unit' => redirect()->route('pendapatan.index'),
         'pimpinan'   => redirect()->route('pimpinan.dashboard'),
         default      => abort(403),
@@ -32,11 +34,19 @@ Route::get('/', function () {
 | ADMIN PIC
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:admin_pic'])->group(function () {
-    Route::get('/dashboard-admin', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+Route::middleware(['auth', 'role:admin_pic'])
+    ->prefix('admin-pic')
+    ->name('admin.pic.')
+    ->group(function () {
+
+        Route::get('/unit', [UnitController::class, 'index'])
+            ->name('unit.index');
+
+        Route::get('/unit/{unit}/pendapatan',
+            [PendapatanUnitController::class, 'index'])
+            ->name('unit.pendapatan');
 });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -84,6 +94,15 @@ Route::middleware(['auth', 'role:pimpinan'])->group(function () {
         return view('pimpinan.dashboard');
     })->name('pimpinan.dashboard');
 });
+
+//Admin PIC
+Route::middleware(['auth', 'role:admin_pic'])
+->prefix('admin-pic')
+->group(function(){
+    Route::get('/unit', [UnitController::class, 'index'])
+    ->name('admin.pic.unit.index');
+});
+
 
 /*
 |--------------------------------------------------------------------------

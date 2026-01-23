@@ -4,49 +4,96 @@
     <meta charset="UTF-8">
     <title>@yield('title', 'KAI DIVRE I SUMUT')</title>
 
-    {{-- TAILWIND --}}
-    @vite('resources/css/app.css')
+    {{-- TAILWIND + JS VITE --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- DATATABLES CSS --}}
+    <link rel="stylesheet"
+          href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 </head>
+
 <body class="font-sans bg-gray-100">
 
     {{-- NAVBAR --}}
-    <nav class="flex items-center justify-between px-10 py-0 border-b bg-white">
-        <div class="flex items-center gap-2">
-            <img src="{{ asset('img/logo-kai.png') }}" class="h-28">
+    <nav class="bg-white border-b-8 border-[#231f5c]">
+        <div class="flex items-center justify-between px-10 h-20">
+
+            {{-- LOGO --}}
+            <div class="flex items-center gap-3">
+                <img src="{{ asset('img/logo-kai.png') }}" alt="KAI" class="h-12">
+            </div>
+
+            {{-- MENU --}}
+            @auth
+            <ul class="flex items-center gap-10 text-sm font-semibold text-[#231f5c]">
+
+                {{-- ADMIN UNIT --}}
+                @if(auth()->user()->role->username === 'admin_unit')
+                    <li>
+                        <a href="{{ route('pendapatan.index') }}"
+                        class="hover:text-orange-500 transition">
+                            LAPORAN
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('pendapatan.input') }}"
+                        class="hover:text-orange-500 transition">
+                            INPUT PENDAPATAN
+                        </a>
+                    </li>
+                @endif
+
+                {{-- ADMIN PIC --}}
+                @if(auth()->user()->role->username === 'admin_pic')
+                    <li>
+                        <a href="{{ route('admin.pic.unit.index') }}"
+                        class="hover:text-orange-500 transition">
+                            KELOLA DATA UNIT
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                        class="hover:text-orange-500 transition">
+                            KELOLA PENGGUNA
+                        </a>
+                    </li>
+                @endif
+
+                {{-- PIMPINAN --}}
+                @if(auth()->user()->role->username === 'pimpinan')
+                    <li>
+                        <a href="{{ route('pimpinan.dashboard') }}"
+                        class="hover:text-orange-500 transition">
+                            DASHBOARD
+                        </a>
+                    </li>
+                @endif
+
+                {{-- LOGOUT --}}
+                <li>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="hover:text-red-600 transition">
+                            LOGOUT
+                        </button>
+                    </form>
+                </li>
+
+            </ul>
+            @endauth
         </div>
-
-        @auth
-        <ul class="flex gap-8 text-[#231f5c] font-semibold items-center">
-            @if(auth()->user()->role->username === 'admin_pic')
-                <li><a href="/dashboard-admin">Dashboard Admin</a></li>
-            @endif
-
-            @if(auth()->user()->role->username === 'admin_unit')
-                <li><a href="{{route('pendapatan.index')}}">LAPORAN</a></li>
-            @endif
-
-            @if(auth()->user()->role->username === 'admin_unit')
-                <li><a href="{{route('pendapatan.input')}}">INPUT PENDAPATAN</a></li>
-            @endif
-
-            @if(auth()->user()->role->username === 'pimpinan')
-                <li><a href="/dashboard-pimpinan">Dashboard Pimpinan</a></li>
-            @endif
-
-            <li>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="text-red-600">LOGOUT</button>
-                </form>
-            </li>
-        </ul>
-        @endauth
     </nav>
 
     {{-- CONTENT --}}
-    <main>
+    <main class="pt-0 pb-6">
         @yield('content')
     </main>
+
+    {{-- JQUERY --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    {{-- DATATABLES JS --}}
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
 </body>
 </html>
