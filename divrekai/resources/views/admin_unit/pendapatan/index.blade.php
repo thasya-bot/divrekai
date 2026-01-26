@@ -171,10 +171,9 @@
 
     {{-- KIRI --}}
     <div>
-        Showing {{ $rekapBulanan->firstItem() ?? 0 }}
-        to {{ $rekapBulanan->lastItem() ?? 0 }}
-        of {{ $rekapBulanan->total() }} Entries
-
+        Showing {{ $pendapatan->firstItem() ?? 0 }}
+        to {{ $pendapatan->lastItem() ?? 0 }}
+        of {{ $pendapatan->total() }} Entries
     </div>
 
     {{-- KANAN --}}
@@ -221,8 +220,11 @@
 <div class="bg-white rounded-xl shadow p-6 mt-10">
 
     {{-- FILTER BAR --}}
-    <form method="GET" id="filterFormBulanan"
-          class="flex flex-wrap items-center justify-between gap-4 mb-4">
+   <form method="GET"
+      action="{{ route('pendapatan.index') }}"
+      id="filterFormBulanan"
+      class="flex flex-wrap items-center justify-between gap-4 mb-4">
+
 
         {{-- KIRI --}}
         <div class="flex items-center gap-3">
@@ -258,7 +260,7 @@
                         onchange="filterFormBulanan.submit()"
                         class="border rounded px-2 py-1">
                     @foreach([4,10,25,50] as $l)
-                        <option value="{{ $l }}" {{ request('limit',4)==$l?'selected':'' }}>
+                        <option value="{{ $l }}" {{ request('limit_bulanan',4)==$l?'selected':'' }}>
                             {{ $l }}
                         </option>
                     @endforeach
@@ -337,35 +339,35 @@
         {{-- KANAN --}}
         <div class="flex items-center border rounded overflow-hidden">
 
-            {{-- PREV --}}
-            @if ($pendapatan->onFirstPage())
-                <span class="px-3 py-1 text-gray-400 border-r cursor-not-allowed">‹</span>
-            @else
-                <a href="{{ $pendapatan->previousPageUrl() }}"
-                class="px-3 py-1 border-r hover:bg-gray-100">‹</a>
-            @endif
+        {{-- PREV --}}
+        @if ($rekapBulanan->onFirstPage())
+            <span class="px-3 py-1 text-gray-400 border-r cursor-not-allowed">‹</span>
+        @else
+            <a href="{{ $rekapBulanan->previousPageUrl() }}"
+            class="px-3 py-1 border-r hover:bg-gray-100">‹</a>
+        @endif
 
-            {{-- PAGE --}}
-            @foreach ($pendapatan->getUrlRange(1, $pendapatan->lastPage()) as $page => $url)
-                @if ($page == $pendapatan->currentPage())
-                    <span class="px-3 py-1 bg-white border-r font-semibold text-[#231f5c]">
-                        {{ $page }}
-                    </span>
-                @else
-                    <a href="{{ $url }}"
-                    class="px-3 py-1 border-r hover:bg-gray-100">
-                        {{ $page }}
-                    </a>
-                @endif
-            @endforeach
-
-            {{-- NEXT --}}
-            @if ($pendapatan->hasMorePages())
-                <a href="{{ $pendapatan->nextPageUrl() }}"
-                class="px-3 py-1 hover:bg-gray-100">›</a>
+        {{-- PAGE --}}
+        @foreach ($rekapBulanan->getUrlRange(1, $rekapBulanan->lastPage()) as $page => $url)
+            @if ($page == $rekapBulanan->currentPage())
+                <span class="px-3 py-1 bg-white border-r font-semibold text-[#231f5c]">
+                    {{ $page }}
+                </span>
             @else
-                <span class="px-3 py-1 text-gray-400 cursor-not-allowed">›</span>
+                <a href="{{ $url }}"
+                class="px-3 py-1 border-r hover:bg-gray-100">
+                    {{ $page }}
+                </a>
             @endif
+        @endforeach
+
+        {{-- NEXT --}}
+        @if ($rekapBulanan->hasMorePages())
+            <a href="{{ $rekapBulanan->nextPageUrl() }}"
+            class="px-3 py-1 hover:bg-gray-100">›</a>
+        @else
+            <span class="px-3 py-1 text-gray-400 cursor-not-allowed">›</span>
+        @endif
 
         </div>
     </div>

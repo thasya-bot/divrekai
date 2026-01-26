@@ -31,8 +31,8 @@ public function index(Request $request)
 
     $pendapatan = $query
         ->orderBy('tanggal', 'desc')
-        ->paginate($limitHarian, ['*'], 'page_harian')
-        ->withQueryString();
+        ->paginate($limitHarian, ['*'], 'page_harian');
+
 
     /*
     |==============================
@@ -135,7 +135,35 @@ public function index(Request $request)
             ->route('pendapatan.index')
             ->with('success', 'Pendapatan berhasil diperbarui');
     }
+public function bulanan(Request $request)
+{
+    $unitId = auth()->user()->unit_id;
 
+    $limitBulanan = $request->get('limit_bulanan', 4);
+
+    $rekapQuery = Pendapatan::selectRaw('
+            YEAR(tanggal) as tahun,
+            MONTH(tanggal) as bulan,
+            SUM(jumlah) as total
+        ')
+        ->where('unit_id', $unitId)
+        ->groupBy('tahun', 'bulan')
+        ->orderBy('tahun', 'desc')
+        ->orderBy('bulan', 'desc');
+
+    if ($request->filled('bulan')) {
+        [$tahun, $bulan] = explode('-', $request->bulan);
+        $rekapQuery->whereYear('tanggal', $tahun)
+                   ->whereMonth('tanggal', $bulan);
+    }
+
+    if ($request->filled('search_bulanan')) {
+        $rekapQuery->havingRaw(
+            "CONCAT(tahun,'-',LPAD(bulan,2,'0')) LIKE ?",
+            ['%' . $request->search_bulanan . '%']
+        );
+    }
+}
     public function destroy(Pendapatan $pendapatan)
     {
         $pendapatan->delete();
@@ -145,3 +173,4 @@ public function index(Request $request)
             ->with('success', 'Pendapatan berhasil dihapus');
     }
 }
+
