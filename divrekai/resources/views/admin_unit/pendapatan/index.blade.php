@@ -40,18 +40,71 @@
     </div>
 
     {{-- TABEL HARIAN --}}
-    <div class="bg-white rounded-xl shadow p-6 mb-10">
+    <form method="GET" id="filterForm"
+        class="flex flex-wrap items-center justify-between gap-4 mb-4">
 
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="font-semibold bg-orange-600 text-white px-4 py-2 text-sm">
-                Laporan Pendapatan Harian
-            </h2>
+        {{-- KIRI --}}
+        <div class="flex items-center gap-3">
 
-            <a href="{{ route('pendapatan.input') }}"
-               class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm">
-                + Tambah Data
-            </a>
+            {{-- KOTAK ORANYE + KALENDER --}}
+            <div onclick="openDatePicker()"
+                class="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded text-sm font-semibold cursor-pointer hover:bg-orange-700">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+
+                <span>Laporan Pendapatan Harian</span>
+            </div>
+
+            {{-- INPUT DATE (DISIMPAN) --}}
+            <input id="filterTanggal"
+                type="date"
+                name="tanggal"
+                value="{{ request('tanggal') }}"
+                class="hidden">
         </div>
+
+        {{-- KANAN --}}
+        <div class="flex items-center gap-4 text-sm">
+
+            {{-- SHOW --}}
+            <div class="flex items-center gap-2">
+                <span>Show</span>
+                <select name="limit_harian"
+                        onchange="filterForm.submit()"
+                        class="border rounded px-2 py-1">
+                    @foreach([4,10,25,50] as $l)
+                        <option value="{{ $l }}" {{ request('limit_harian',4)==$l?'selected':'' }}>
+                            {{ $l }}
+                        </option>
+                    @endforeach
+                </select>
+                <span>Entries</span>
+            </div>
+
+            {{-- SEARCH --}}
+            <div class="flex items-center gap-2">
+                <span>Search:</span>
+                <input type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="border rounded px-2 py-1 text-sm">
+            </div>
+        </div>
+    </form>
+        <script>
+            function openDatePicker() {
+                document.getElementById('filterTanggal').showPicker();
+            }
+
+            document.getElementById('filterTanggal')
+                .addEventListener('change', function () {
+                    document.getElementById('filterForm').submit();
+                });
+        </script>
 
         <div class="overflow-x-auto">
             <table class="w-full text-sm border rounded-lg">
@@ -112,15 +165,136 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
+            
+{{-- INFO + PAGINATION (DATATABLES STYLE) --}}
+<div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+
+    {{-- KIRI --}}
+    <div>
+        Showing {{ $rekapBulanan->firstItem() ?? 0 }}
+        to {{ $rekapBulanan->lastItem() ?? 0 }}
+        of {{ $rekapBulanan->total() }} Entries
+
     </div>
 
-    {{-- REKAP BULANAN --}}
-    <div class="bg-white rounded-xl shadow p-6 mt-10">
-        <h2 class="font-semibold bg-[#231f5c] text-white px-4 py-2 text-sm mb-4 inline-block">
-            Rekapan Pendapatan Bulanan
-        </h2>
+    {{-- KANAN --}}
+    <div class="flex items-center border rounded overflow-hidden">
 
+        {{-- PREV --}}
+        @if ($pendapatan->onFirstPage())
+            <span class="px-3 py-1 text-gray-400 border-r cursor-not-allowed">‹</span>
+        @else
+            <a href="{{ $pendapatan->previousPageUrl() }}"
+               class="px-3 py-1 border-r hover:bg-gray-100">‹</a>
+        @endif
+
+        {{-- PAGE --}}
+        @foreach ($pendapatan->getUrlRange(1, $pendapatan->lastPage()) as $page => $url)
+            @if ($page == $pendapatan->currentPage())
+                <span class="px-3 py-1 bg-white border-r font-semibold text-[#231f5c]">
+                    {{ $page }}
+                </span>
+            @else
+                <a href="{{ $url }}"
+                   class="px-3 py-1 border-r hover:bg-gray-100">
+                    {{ $page }}
+                </a>
+            @endif
+        @endforeach
+
+        {{-- NEXT --}}
+        @if ($pendapatan->hasMorePages())
+            <a href="{{ $pendapatan->nextPageUrl() }}"
+               class="px-3 py-1 hover:bg-gray-100">›</a>
+        @else
+            <span class="px-3 py-1 text-gray-400 cursor-not-allowed">›</span>
+        @endif
+
+    </div>
+</div>
+        </div>
+ 
+        </div>
+    </div>
+    
+{{-- REKAP BULANAN --}}
+<div class="bg-white rounded-xl shadow p-6 mt-10">
+
+    {{-- FILTER BAR --}}
+    <form method="GET" id="filterFormBulanan"
+          class="flex flex-wrap items-center justify-between gap-4 mb-4">
+
+        {{-- KIRI --}}
+        <div class="flex items-center gap-3">
+
+            {{-- KOTAK BIRU + KALENDER --}}
+            <div onclick="openMonthPicker()"
+                 class="flex items-center gap-2 bg-[#231f5c] text-white px-4 py-2 rounded text-sm font-semibold cursor-pointer hover:opacity-90">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+
+                <span>Rekapan Pendapatan Bulanan</span>
+            </div>
+
+            {{-- INPUT MONTH (HIDDEN) --}}
+            <input id="filterBulan"
+                   type="month"
+                   name="bulan"
+                   value="{{ request('bulan') }}"
+                   class="hidden">
+        </div>
+
+        {{-- KANAN (SAMA KAYAK HARIAN) --}}
+        <div class="flex items-center gap-4 text-sm">
+
+            {{-- SHOW --}}
+            <div class="flex items-center gap-2">
+                <span>Show</span>
+                <select name="limit_bulanan"
+                        onchange="filterFormBulanan.submit()"
+                        class="border rounded px-2 py-1">
+                    @foreach([4,10,25,50] as $l)
+                        <option value="{{ $l }}" {{ request('limit',4)==$l?'selected':'' }}>
+                            {{ $l }}
+                        </option>
+                    @endforeach
+                </select>
+                <span>Entries</span>
+            </div>
+
+            {{-- SEARCH --}}
+            <div class="flex items-center gap-2">
+                <span>Search:</span>
+                <input type="text"
+                       name="search_bulanan"
+                       value="{{ request('search_bulanan') }}"
+                       class="border rounded px-2 py-1 text-sm">
+            </div>
+        </div>
+
+        {{-- JAGA FILTER HARIAN --}}
+        <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
+        <input type="hidden" name="search" value="{{ request('search') }}">
+    </form>
+
+    {{-- SCRIPT --}}
+    <script>
+        function openMonthPicker() {
+            document.getElementById('filterBulan').showPicker();
+        }
+
+        document.getElementById('filterBulan')
+            .addEventListener('change', function () {
+                document.getElementById('filterFormBulanan').submit();
+            });
+    </script>
+
+    {{-- TABEL --}}
+    <div class="overflow-x-auto">
         <table class="w-full text-sm border rounded-lg">
             <thead class="bg-orange-600 text-white">
                 <tr>
@@ -132,7 +306,7 @@
 
             <tbody>
                 @forelse($rekapBulanan as $row)
-                    <tr class="border-t text-center">
+                    <tr class="border-t hover:bg-gray-50 text-center">
                         <td class="py-3 px-4">{{ $loop->iteration }}</td>
                         <td class="py-3 px-4">
                             {{ \Carbon\Carbon::create($row->tahun, $row->bulan)->translatedFormat('F Y') }}
@@ -143,14 +317,62 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3" class="py-4 text-center text-gray-500">
+                        <td colspan="4" class="py-4 text-center text-gray-500">
                             Belum ada data
                         </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
+            {{-- INFO + PAGINATION (DATATABLES STYLE) --}}
+    <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+
+        {{-- KIRI --}}
+        <div>
+            Showing {{ $rekapBulanan->firstItem() ?? 0 }}
+            to {{ $rekapBulanan->lastItem() ?? 0 }}
+            of {{ $rekapBulanan->total() }} Entries
+        </div>
+
+        {{-- KANAN --}}
+        <div class="flex items-center border rounded overflow-hidden">
+
+            {{-- PREV --}}
+            @if ($pendapatan->onFirstPage())
+                <span class="px-3 py-1 text-gray-400 border-r cursor-not-allowed">‹</span>
+            @else
+                <a href="{{ $pendapatan->previousPageUrl() }}"
+                class="px-3 py-1 border-r hover:bg-gray-100">‹</a>
+            @endif
+
+            {{-- PAGE --}}
+            @foreach ($pendapatan->getUrlRange(1, $pendapatan->lastPage()) as $page => $url)
+                @if ($page == $pendapatan->currentPage())
+                    <span class="px-3 py-1 bg-white border-r font-semibold text-[#231f5c]">
+                        {{ $page }}
+                    </span>
+                @else
+                    <a href="{{ $url }}"
+                    class="px-3 py-1 border-r hover:bg-gray-100">
+                        {{ $page }}
+                    </a>
+                @endif
+            @endforeach
+
+            {{-- NEXT --}}
+            @if ($pendapatan->hasMorePages())
+                <a href="{{ $pendapatan->nextPageUrl() }}"
+                class="px-3 py-1 hover:bg-gray-100">›</a>
+            @else
+                <span class="px-3 py-1 text-gray-400 cursor-not-allowed">›</span>
+            @endif
+
+        </div>
     </div>
+    </div>
+
+</div>
+
     {{-- MODAL KONFIRMASI HAPUS --}}
     <div id="deleteModal"
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
@@ -166,17 +388,23 @@
                 <span class="text-red-600 font-semibold">Tindakan ini tidak dapat dibatalkan.</span>
             </p>
 
-            <div class="flex justify-end gap-3">
-                <button onclick="closeDeleteModal()"
-                    class="px-4 py-0 rounded-lg bg-gray-200 hover:bg-gray-300  text-sm">
+            <div class="grid grid-cols-2 gap-3 items-stretch">
+
+                {{-- BATAL --}}
+                <button
+                    type="button"
+                    onclick="closeDeleteModal()"
+                    class="w-full h-full px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm font-medium">
                     Batal
                 </button>
 
-                <form id="deleteForm" method="POST">
+                {{-- YA, HAPUS --}}
+                <form id="deleteForm" method="POST" class="w-full h-full">
                     @csrf
                     @method('DELETE')
-                    <button type="submit"
-                        class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm">
+                    <button
+                        type="submit"
+                        class="w-full h-full px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium">
                         Ya, Hapus
                     </button>
                 </form>

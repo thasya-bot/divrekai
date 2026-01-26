@@ -45,31 +45,24 @@ Route::middleware(['auth', 'role:admin_pic'])->group(function () {
 */
 Route::middleware(['auth', 'role:admin_unit'])->group(function () {
 
-    // DASHBOARD / LAPORAN
     Route::get('/pendapatan', [PendapatanController::class, 'index'])
         ->name('pendapatan.index');
 
-    // FORM INPUT PENDAPATAN
     Route::get('/pendapatan/input', [PendapatanController::class, 'create'])
         ->name('pendapatan.input');
 
-    // SIMPAN PENDAPATAN
     Route::post('/pendapatan', [PendapatanController::class, 'store'])
         ->name('pendapatan.store');
 
-    // EDIT
     Route::get('/pendapatan/{pendapatan}/edit', [PendapatanController::class, 'edit'])
         ->name('pendapatan.edit');
 
-    // UPDATE
     Route::put('/pendapatan/{pendapatan}', [PendapatanController::class, 'update'])
         ->name('pendapatan.update');
 
-    // DELETE
     Route::delete('/pendapatan/{pendapatan}', [PendapatanController::class, 'destroy'])
         ->name('pendapatan.destroy');
 
-    // TARGET PENDAPATAN
     Route::post('/target', [TargetPendapatanController::class, 'store'])
         ->name('target.store');
 });
@@ -96,4 +89,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

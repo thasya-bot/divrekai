@@ -10,7 +10,7 @@
 <body class="font-sans bg-gray-100">
 
     {{-- NAVBAR --}}
-    <nav class="flex items-center justify-between px-10 py-0 border-b bg-white">
+    <nav class="flex items-center justify-between px-10 py-0 h-20 border-b bg-white">
         <div class="flex items-center gap-2">
             <img src="{{ asset('img/logo-kai.png') }}" class="h-28">
         </div>
@@ -42,6 +42,8 @@
         </ul>
         @endauth
     </nav>
+  {{-- GARIS BIRU --}}
+    <div class="h-3 bg-[#231f5c]"></div>
 
     {{-- CONTENT --}}
     <main>
