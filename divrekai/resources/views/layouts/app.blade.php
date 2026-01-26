@@ -34,7 +34,7 @@
             @endif
 
             <li>
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" class="inline">
                     @csrf
                     <button class="text-red-600">LOGOUT</button>
                 </form>
