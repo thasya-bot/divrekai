@@ -20,7 +20,7 @@
 
             {{-- LOGO --}}
             <div class="flex items-center gap-3">
-                <img src="{{ asset('img/logo-kai.png') }}" alt="KAI" class="h-12">
+                <img src="{{ asset('img/logo-kai.png') }}" alt="KAI" class="h-20">
             </div>
 
             {{-- MENU --}}
@@ -52,10 +52,11 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                        class="hover:text-orange-500 transition">
+                        <a href="{{ route('admin.pic.users.index') }}"
+                            class="hover:text-orange-500 transition">
                             KELOLA PENGGUNA
                         </a>
+
                     </li>
                 @endif
 
@@ -91,9 +92,27 @@
 
     {{-- JQUERY --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if(session('success'))
+    <script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: "{{ session('success') }}",
+        timer: 1800,
+        width: 250,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'rounded-lg px-3 py-2',
+            title: 'text-sm font-semibold text-[#231f5c]',
+            htmlContainer: 'text-xs text-gray-600'
+        }
+    });
+    </script>
+    @endif
 
     {{-- DATATABLES JS --}}
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

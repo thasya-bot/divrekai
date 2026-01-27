@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-8xl mx-auto p-8 bg-white shadow rounded">
 
-    <h2 class="text-center font-bold text-3xl mb-6 text-[#231f5c]">
+    <h2 class="text-center font-bold text-3xl mb-4 text-[#231f5c]">
         Daftar Unit
     </h2>
 
@@ -21,7 +21,7 @@
 
         <tbody>
         @foreach ($units as $unit)
-        <tr class="border-t hover:bg-gray-100">
+        <tr class="border-t hover:bg-gray-200">
             <td class="p-2 border border-gray-300 text-center">
                 {{ $loop->iteration }}
             </td>
@@ -36,7 +36,7 @@
 
             <td class="p-2 border border-gray-300 text-center">
                 <a href="{{ route('admin.pic.unit.pendapatan', $unit->id) }}"
-                class="bg-[#231f5c] text-white px-3 py-1 rounded">
+                class="bg-[#231f5c] text-white px-2 py-1 rounded">
                     Lihat Pendapatan
                 </a>
             </td>
