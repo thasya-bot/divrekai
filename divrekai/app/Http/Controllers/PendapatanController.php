@@ -47,6 +47,29 @@ public function index(Request $request)
         ->whereMonth('tanggal', now()->month)
         ->whereYear('tanggal', now()->year)
         ->sum('jumlah');
+    $targetHarian = 3200000;
+
+    $pieData = Pendapatan::selectRaw('
+    keterangan,
+    SUM(jumlah) as total
+    ')
+    ->where('unit_id', $unitId)
+    ->whereMonth('tanggal', now()->month)
+    ->whereYear('tanggal', now()->year)
+    ->groupBy('keterangan')
+    ->get();
+
+    $barData = Pendapatan::selectRaw('
+        DATE(tanggal) as tanggal,
+        SUM(jumlah) as total
+    ')
+    ->where('unit_id', $unitId)
+    ->whereMonth('tanggal', now()->month)
+    ->whereYear('tanggal', now()->year)
+    ->groupBy('tanggal')
+    ->orderBy('tanggal')
+    ->get();
+
 
     /*
     |==============================
@@ -80,22 +103,88 @@ public function index(Request $request)
     $rekapBulanan = $rekapQuery
         ->paginate($limitBulanan, ['*'], 'page_bulanan')
         ->withQueryString();
+// =====================
+// TARGET & STATUS HARIAN
+// =====================
+$targetHarian = 3200000;
+$statusTargetHarian = null;
 
-    return view('admin_unit.pendapatan.index', compact(
-        'pendapatan',
-        'hariIni',
-        'bulanIni',
-        'rekapBulanan'
+$now = now();
+
+// Senin–Jumat
+$isHariKerja = $now->isWeekday();
+
+// Jam 16:30 – 23:59
+$isJamWarning = $now->between(
+    $now->copy()->setTime(16, 30),
+    $now->copy()->setTime(23, 59)
+);
+
+if ($isHariKerja && $isJamWarning) {
+    if ($hariIni < $targetHarian) {
+        $statusTargetHarian = 'kurang';
+    } elseif ($hariIni == $targetHarian) {
+        $statusTargetHarian = 'pas';
+    } else {
+        $statusTargetHarian = 'lebih';
+    }
+}
+
+    // PIE CHART (contoh: per keterangan)
+    $pieData = Pendapatan::where('unit_id', $unitId)
+        ->selectRaw('keterangan, SUM(jumlah) as total')
+        ->groupBy('keterangan')
+        ->get();
+
+    // BAR CHART (contoh: per tanggal)
+    $barData = Pendapatan::where('unit_id', $unitId)
+        ->selectRaw('tanggal, SUM(jumlah) as total')
+        ->groupBy('tanggal')
+        ->orderBy('tanggal')
+        ->limit(5)
+        ->get();
+        return view('admin_unit.pendapatan.index', compact(
+            'pendapatan',
+            'hariIni',
+            'bulanIni',
+            'rekapBulanan',
+            'pieData',
+            'barData',
+            'targetHarian',
+            'statusTargetHarian'
+        ));
+
+}
+
+public function create()
+{
+    $unitId = auth()->user()->unit_id;
+    $targetHarian = 3200000;
+
+    $totalHariIni = Pendapatan::where('unit_id', $unitId)
+        ->whereDate('tanggal', today())
+        ->sum('jumlah');
+
+    $now = now();
+
+    $isHariKerja = $now->isWeekday(); // Senin–Jumat
+    $isJamWarning = $now->between(
+        $now->copy()->setTime(16, 30),
+        $now->copy()->setTime(23, 59)
+    );
+
+    $statusTargetHarian = null;
+
+    if ($isHariKerja && $isJamWarning && $totalHariIni < $targetHarian) {
+        $statusTargetHarian = 'kurang';
+    }
+
+    return view('admin_unit.pendapatan.input', compact(
+        'totalHariIni',
+        'targetHarian',
+        'statusTargetHarian'
     ));
 }
-    public function create()
-    {
-        $totalHariIni = Pendapatan::where('unit_id', auth()->user()->unit_id)
-            ->whereDate('tanggal', today())
-            ->sum('jumlah');
-
-        return view('admin_unit.pendapatan.input', compact('totalHariIni'));
-    }
 
     public function store(Request $request)
     {
@@ -173,4 +262,5 @@ public function bulanan(Request $request)
             ->with('success', 'Pendapatan berhasil dihapus');
     }
 }
+
 

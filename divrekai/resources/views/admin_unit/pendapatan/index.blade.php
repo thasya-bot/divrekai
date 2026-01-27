@@ -12,32 +12,93 @@
         </h1>
     </div>
 
-    {{-- RINGKASAN --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+{{-- ===================== --}}
+{{-- SECTION RINGKASAN --}}
+{{-- ===================== --}}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
-        {{-- HARI INI --}}
-        <div class="bg-[#231f5c] text-white rounded-xl p-6 shadow">
-            <p class="text-sm">Pendapatan Hari Ini</p>
-            <p class="text-3xl font-bold mt-3">
-                Rp {{ number_format($hariIni ?? 0, 0, ',', '.') }}
-            </p>
-            <p class="text-xs mt-2">
-                {{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}
-            </p>
+    {{-- HARI INI --}}
+    <div class="bg-[#231f5c] text-white rounded-xl p-6 shadow">
+        <p class="text-sm">Pendapatan Hari Ini</p>
+        <p class="text-3xl font-bold mt-3">
+            Rp {{ number_format($hariIni ?? 0, 0, ',', '.') }}
+        </p>
+        <p class="text-xs mt-2">
+            {{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}
+        </p>
+    </div>
+
+    {{-- BULAN INI --}}
+    <div class="bg-orange-600 text-white rounded-xl p-6 shadow">
+        <p class="text-sm">Pendapatan Bulan Ini</p>
+        <p class="text-3xl font-bold mt-3">
+            Rp {{ number_format($bulanIni ?? 0, 0, ',', '.') }}
+        </p>
+        <p class="text-xs mt-2">
+            {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}
+        </p>
+    </div>
+
+</div>
+@if (!is_null($statusTargetHarian) && $statusTargetHarian === 'kurang')
+
+    <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        ❌ Target harian belum tercapai.
+        Kurang Rp {{ number_format($targetHarian - $hariIni, 0, ',', '.') }}
+    </div>
+
+@elseif (!is_null($statusTargetHarian) && $statusTargetHarian === 'pas')
+
+    <div class="mt-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+        ⚠️ Pendapatan hari ini tepat sesuai target.
+    </div>
+
+@elseif (!is_null($statusTargetHarian) && $statusTargetHarian === 'lebih')
+    <div class="mt-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+        ✅ Target harian tercapai!
+        Lebih Rp {{ number_format($hariIni - $targetHarian, 0, ',', '.') }}
+    </div>
+@endif
+
+{{-- ===================== --}}
+{{-- SECTION GRAFIK --}}
+{{-- ===================== --}}
+<div class="my-10">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        {{-- PIE --}}
+        <div class="bg-white rounded-xl shadow p-4 h-[260px] flex items-center justify-center">
+            <canvas id="pieChart" class="w-full h-full"></canvas>
         </div>
 
-        {{-- BULAN INI --}}
-        <div class="bg-orange-600 text-white rounded-xl p-6 shadow">
-            <p class="text-sm">Pendapatan Bulan Ini</p>
-            <p class="text-3xl font-bold mt-3">
-                Rp {{ number_format($bulanIni ?? 0, 0, ',', '.') }}
-            </p>
-            <p class="text-xs mt-2">
-                {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}
-            </p>
+        {{-- BAR --}}
+        <div class="bg-white rounded-xl shadow p-4 h-[260px] flex items-center justify-center">
+            <canvas id="barChart" class="w-full h-full"></canvas>
+        </div>
+
+        {{-- TARGET --}}
+        <div class="bg-gray-400 text-white rounded-xl p-6 shadow h-[260px] flex flex-col justify-center">
+            <p class="text-sm">Target Per Hari</p>
+            <p class="text-xl font-bold mb-3">Rp 3.200.000</p>
+
+            <p class="text-sm">Target Per Bulan</p>
+            <p class="text-xl font-bold mb-3">Rp 3.200.000</p>
+
+            <p class="text-sm">Target Per Tahun</p>
+            <p class="text-xl font-bold">Rp 3.200.000</p>
         </div>
 
     </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+console.log('pieCanvas:', document.getElementById('pieChart'));
+console.log('barCanvas:', document.getElementById('barChart'));
+console.log('ChartJS:', typeof Chart);
+</script>
+
+
 
     {{-- TABEL HARIAN --}}
     <form method="GET" id="filterForm"
@@ -413,10 +474,6 @@
             </div>
         </div>
     </div>
-
-
-</div>
-@endsection
 <script>
     function openDeleteModal(actionUrl) {
         const modal = document.getElementById('deleteModal');
@@ -433,3 +490,96 @@
         modal.classList.remove('flex');
     }
 </script>
+
+    {{-- LOAD CHART.JS DULU --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {{-- SCRIPT GRAFIK --}}
+ <script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const pieCtx = document.getElementById('pieChart');
+    const barCtx = document.getElementById('barChart');
+
+    if (!pieCtx || !barCtx) {
+        console.error('Canvas chart tidak ditemukan');
+        return;
+    }
+
+    // =====================
+    // PIE CHART (SUMBER)
+    // =====================
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: @json($pieData->pluck('keterangan')),
+            datasets: [{
+                data: @json($pieData->pluck('total')),
+                backgroundColor: [
+                    '#1e1b4b',
+                    '#f97316',
+                    '#22c55e',
+                    '#64748b',
+                    '#ef4444'
+                ]
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // =====================
+    // BAR CHART (HARIAN)
+    // =====================
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode(
+                $barData->pluck('tanggal')->map(fn($t) =>
+                    \Carbon\Carbon::parse($t)->format('d M')
+                )
+            ) !!},
+            datasets: [
+                {
+                    label: 'Pendapatan',
+                    data: {!! json_encode($barData->pluck('total')) !!},
+                    backgroundColor: '#1e1b4b'
+                },
+                {
+                    label: 'Target',
+                    data: {!! json_encode(
+                        $barData->map(fn() => $targetHarian)
+                    ) !!},
+                    backgroundColor: '#ef4444'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,      // 🔥 WAJIB
+                    position: 'bottom'  // 🔥 PINDAH KE BAWAH
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value =>
+                            'Rp ' + value.toLocaleString('id-ID')
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+@endsection
+

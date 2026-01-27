@@ -65,6 +65,7 @@
 
 </div>
 
+
 {{-- TOTAL PENDAPATAN HARI INI --}}
 <div class="max-w-2xl mx-auto mt-8 px-4 mb-10">
     <div class="border-2 border-indigo-900 rounded-xl p-6 text-center bg-white">
