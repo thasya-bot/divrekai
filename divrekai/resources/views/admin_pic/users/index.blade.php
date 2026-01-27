@@ -6,7 +6,7 @@
 <div class="max-w-8xl mx-auto bg-white p-6 shadow rounded">
 
     {{-- JUDUL --}}
-    <h2 class="text-center font-bold text-3xl text-[#231f5c] mb-6">
+    <h2 class="text-center font-bold text-3xl text-[#231f5c] mb-4">
         Kelola Pengguna
     </h2>
 
