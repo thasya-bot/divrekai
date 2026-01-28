@@ -76,20 +76,6 @@
                 @enderror
             </div>
 
-            {{-- REMEMBER ME --}}
-            <div class="flex items-center justify-between text-sm">
-                <label class="flex items-center gap-2 text-gray-600">
-                    <input type="checkbox" name="remember" class="rounded border-gray-300">
-                    Remember me
-                </label>
-
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="text-orange-600 hover:underline">
-                        Lupa password?
-                    </a>
-                @endif
-            </div>
-
             {{-- BUTTON --}}
             <button
                 type="submit"
