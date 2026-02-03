@@ -8,42 +8,183 @@ use Carbon\Carbon;
 
 class PendapatanController extends Controller
 {
-    public function index()
-    {
-        $unitId = auth()->user()->unit_id;
+public function index(Request $request)
+{
+    $unitId = auth()->user()->unit_id;
 
-        $pendapatan = Pendapatan::where('unit_id', $unitId)
-            ->orderBy('tanggal', 'desc')
-            ->get();
+    /*
+    |==============================
+    | HARIAN
+    |==============================
+    */
+    $query = Pendapatan::where('unit_id', $unitId);
+    $limitHarian = $request->get('limit_harian', 4);
 
-        $hariIni = Pendapatan::where('unit_id', $unitId)
-            ->whereDate('tanggal', today())
-            ->sum('jumlah');
+    // ❗ PENTING: JANGAN BACA FILTER BULANAN
+    if ($request->filled('tanggal') && !$request->filled('bulan')) {
+        $query->whereDate('tanggal', $request->tanggal);
+    }
 
-        $bulanIni = Pendapatan::where('unit_id', $unitId)
-            ->whereMonth('tanggal', now()->month)
-            ->whereYear('tanggal', now()->year)
-            ->sum('jumlah');
+    if ($request->filled('search') && !$request->filled('search_bulanan')) {
+        $query->where('keterangan', 'like', '%' . $request->search . '%');
+    }
 
-        $rekapBulanan = Pendapatan::selectRaw('YEAR(tanggal) tahun, MONTH(tanggal) bulan, SUM(jumlah) total')
-            ->where('unit_id', $unitId)
-            ->groupBy('tahun', 'bulan')
-            ->orderBy('tahun', 'desc')
-            ->orderBy('bulan', 'desc')
-            ->get();
+    $pendapatan = $query
+        ->orderBy('tanggal', 'desc')
+        ->paginate($limitHarian, ['*'], 'page_harian');
 
+
+    /*
+    |==============================
+    | RINGKASAN
+    |==============================
+    */
+    $hariIni = Pendapatan::where('unit_id', $unitId)
+        ->whereDate('tanggal', today())
+        ->sum('jumlah');
+
+    $bulanIni = Pendapatan::where('unit_id', $unitId)
+        ->whereMonth('tanggal', now()->month)
+        ->whereYear('tanggal', now()->year)
+        ->sum('jumlah');
+    $targetHarian = 3200000;
+
+    $pieData = Pendapatan::selectRaw('
+    keterangan,
+    SUM(jumlah) as total
+    ')
+    ->where('unit_id', $unitId)
+    ->whereMonth('tanggal', now()->month)
+    ->whereYear('tanggal', now()->year)
+    ->groupBy('keterangan')
+    ->get();
+
+    $barData = Pendapatan::selectRaw('
+        DATE(tanggal) as tanggal,
+        SUM(jumlah) as total
+    ')
+    ->where('unit_id', $unitId)
+    ->whereMonth('tanggal', now()->month)
+    ->whereYear('tanggal', now()->year)
+    ->groupBy('tanggal')
+    ->orderBy('tanggal')
+    ->get();
+
+
+    /*
+    |==============================
+    | BULANAN
+    |==============================
+    */
+    $limitBulanan = $request->get('limit_bulanan', 4);
+    $rekapQuery = Pendapatan::selectRaw('
+            YEAR(tanggal) as tahun,
+            MONTH(tanggal) as bulan,
+            SUM(jumlah) as total
+        ')
+        ->where('unit_id', $unitId)
+        ->groupBy('tahun', 'bulan')
+        ->orderBy('tahun', 'desc')
+        ->orderBy('bulan', 'desc');
+
+    if ($request->filled('bulan')) {
+        [$tahun, $bulan] = explode('-', $request->bulan);
+        $rekapQuery->whereYear('tanggal', $tahun)
+                   ->whereMonth('tanggal', $bulan);
+    }
+
+    if ($request->filled('search_bulanan')) {
+        $rekapQuery->havingRaw(
+            "CONCAT(tahun, '-', LPAD(bulan,2,'0')) LIKE ?",
+            ['%' . $request->search_bulanan . '%']
+        );
+    }
+
+    $rekapBulanan = $rekapQuery
+        ->paginate($limitBulanan, ['*'], 'page_bulanan')
+        ->withQueryString();
+// =====================
+// TARGET & STATUS HARIAN
+// =====================
+$targetHarian = 3200000;
+$statusTargetHarian = null;
+
+$now = now();
+
+// Senin–Jumat
+$isHariKerja = $now->isWeekday();
+
+// Jam 16:30 – 23:59
+$isJamWarning = $now->between(
+    $now->copy()->setTime(16, 30),
+    $now->copy()->setTime(23, 59)
+);
+
+if ($isHariKerja && $isJamWarning) {
+    if ($hariIni < $targetHarian) {
+        $statusTargetHarian = 'kurang';
+    } elseif ($hariIni == $targetHarian) {
+        $statusTargetHarian = 'pas';
+    } else {
+        $statusTargetHarian = 'lebih';
+    }
+}
+
+    // PIE CHART (contoh: per keterangan)
+    $pieData = Pendapatan::where('unit_id', $unitId)
+        ->selectRaw('keterangan, SUM(jumlah) as total')
+        ->groupBy('keterangan')
+        ->get();
+
+    // BAR CHART (contoh: per tanggal)
+    $barData = Pendapatan::where('unit_id', $unitId)
+        ->selectRaw('tanggal, SUM(jumlah) as total')
+        ->groupBy('tanggal')
+        ->orderBy('tanggal')
+        ->limit(5)
+        ->get();
         return view('admin_unit.pendapatan.index', compact(
             'pendapatan',
             'hariIni',
             'bulanIni',
-            'rekapBulanan'
+            'rekapBulanan',
+            'pieData',
+            'barData',
+            'targetHarian',
+            'statusTargetHarian'
         ));
+
+}
+
+public function create()
+{
+    $unitId = auth()->user()->unit_id;
+    $targetHarian = 3200000;
+
+    $totalHariIni = Pendapatan::where('unit_id', $unitId)
+        ->whereDate('tanggal', today())
+        ->sum('jumlah');
+
+    $now = now();
+
+    $isHariKerja = $now->isWeekday(); // Senin–Jumat
+    $isJamWarning = $now->between(
+        $now->copy()->setTime(16, 30),
+        $now->copy()->setTime(23, 59)
+    );
+
+    $statusTargetHarian = null;
+
+    if ($isHariKerja && $isJamWarning && $totalHariIni < $targetHarian) {
+        $statusTargetHarian = 'kurang';
     }
 
-    public function create()
-    {
-        return view('admin_unit.pendapatan.input');
-    }
+    return view('admin_unit.pendapatan.input', compact(
+        'totalHariIni',
+        'targetHarian',
+        'statusTargetHarian'
+    ));
+}
 
     public function store(Request $request)
     {
@@ -83,7 +224,35 @@ class PendapatanController extends Controller
             ->route('pendapatan.index')
             ->with('success', 'Pendapatan berhasil diperbarui');
     }
+public function bulanan(Request $request)
+{
+    $unitId = auth()->user()->unit_id;
 
+    $limitBulanan = $request->get('limit_bulanan', 4);
+
+    $rekapQuery = Pendapatan::selectRaw('
+            YEAR(tanggal) as tahun,
+            MONTH(tanggal) as bulan,
+            SUM(jumlah) as total
+        ')
+        ->where('unit_id', $unitId)
+        ->groupBy('tahun', 'bulan')
+        ->orderBy('tahun', 'desc')
+        ->orderBy('bulan', 'desc');
+
+    if ($request->filled('bulan')) {
+        [$tahun, $bulan] = explode('-', $request->bulan);
+        $rekapQuery->whereYear('tanggal', $tahun)
+                   ->whereMonth('tanggal', $bulan);
+    }
+
+    if ($request->filled('search_bulanan')) {
+        $rekapQuery->havingRaw(
+            "CONCAT(tahun,'-',LPAD(bulan,2,'0')) LIKE ?",
+            ['%' . $request->search_bulanan . '%']
+        );
+    }
+}
     public function destroy(Pendapatan $pendapatan)
     {
         $pendapatan->delete();
@@ -93,3 +262,5 @@ class PendapatanController extends Controller
             ->with('success', 'Pendapatan berhasil dihapus');
     }
 }
+
+

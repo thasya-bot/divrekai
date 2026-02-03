@@ -1,43 +1,106 @@
 <?php
 
+use App\Http\Controllers\AdminPIC\PendapatanUnitController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PendapatanController;
 use App\Http\Controllers\TargetPendapatanController;
+use App\Http\Controllers\PendapatanPimpinanController;
+
 
 /*
 |--------------------------------------------------------------------------
-| ROOT
+| BERANDA (PUBLIC)
 |--------------------------------------------------------------------------
 */
 
 Route::get('/', function () {
-    if (!auth()->check()) {
-        return redirect('/login');
+    return view('public.beranda');
+})->name('beranda');
+
+/*
+|--------------------------------------------------------------------------
+| GERBANG INPUT PENDAPATAN (PAKSA LOGIN)
+|--------------------------------------------------------------------------
+| Siapa pun klik Input Pendapatan
+| → PASTI login dulu
+*/
+Route::get('/input-pendapatan', function () {
+    // 🔥 paksa logout kalau masih login
+    if (auth()->check()) {
+        auth()->logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
     }
 
+    return redirect()->route('login');
+})->name('input.pendapatan');
+
+/*
+|--------------------------------------------------------------------------
+| REDIRECT SETELAH LOGIN (SESUIAI ROLE)
+|--------------------------------------------------------------------------
+*/
+Route::get('/redirect-dashboard', function () {
     if (!auth()->user()->role) {
         abort(403, 'Role belum diatur');
     }
 
     return match (auth()->user()->role->username) {
-        'admin_pic'  => redirect()->route('admin.dashboard'),
+        'admin_pic'  => redirect()->route('admin.pic.unit.index'),
         'admin_unit' => redirect()->route('pendapatan.index'),
-        'pimpinan'   => redirect()->route('pimpinan.dashboard'),
+        'pimpinan'   => redirect()->route('pimpinan.beranda'),
         default      => abort(403),
     };
-});
+})->middleware('auth')->name('redirect.dashboard');
 
 /*
 |--------------------------------------------------------------------------
 | ADMIN PIC
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:admin_pic'])->group(function () {
-    Route::get('/dashboard-admin', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
-});
+Route::middleware(['auth', 'role:admin_pic'])
+    ->prefix('admin-pic')
+    ->name('admin.pic.')
+    ->group(function () {
+
+        Route::get('/unit', [UnitController::class, 'index'])
+            ->name('unit.index');
+
+        Route::get('/unit/{unit}/pendapatan',
+            [PendapatanUnitController::class, 'index'])
+            ->name('unit.pendapatan');
+
+        Route::get('/pendapatan/{pendapatan}/edit',
+            [PendapatanUnitController::class, 'edit'])
+            ->name('pendapatan.edit');
+
+        Route::put('/pendapatan/{pendapatan}',
+            [PendapatanUnitController::class, 'update'])
+            ->name('pendapatan.update');
+
+        Route::delete('/pendapatan/{pendapatan}',
+            [PendapatanUnitController::class, 'destroy'])
+            ->name('pendapatan.destroy');
+
+             Route::get('/users', [UserController::class, 'index'])
+            ->name('users.index');
+
+        Route::get('/users/create', [UserController::class, 'create'])
+            ->name('users.create');
+
+        Route::post('/users', [UserController::class, 'store'])
+            ->name('users.store');
+
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])
+            ->name('users.edit');
+
+        Route::put('/users/{user}', [UserController::class, 'update'])
+            ->name('users.update');
+
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])
+            ->name('users.destroy');
+    });
 
 /*
 |--------------------------------------------------------------------------
@@ -46,31 +109,24 @@ Route::middleware(['auth', 'role:admin_pic'])->group(function () {
 */
 Route::middleware(['auth', 'role:admin_unit'])->group(function () {
 
-    // DASHBOARD / LAPORAN
     Route::get('/pendapatan', [PendapatanController::class, 'index'])
         ->name('pendapatan.index');
 
-    // FORM INPUT PENDAPATAN
     Route::get('/pendapatan/input', [PendapatanController::class, 'create'])
         ->name('pendapatan.input');
 
-    // SIMPAN PENDAPATAN
     Route::post('/pendapatan', [PendapatanController::class, 'store'])
         ->name('pendapatan.store');
 
-    // EDIT
     Route::get('/pendapatan/{pendapatan}/edit', [PendapatanController::class, 'edit'])
         ->name('pendapatan.edit');
 
-    // UPDATE
     Route::put('/pendapatan/{pendapatan}', [PendapatanController::class, 'update'])
         ->name('pendapatan.update');
 
-    // DELETE
     Route::delete('/pendapatan/{pendapatan}', [PendapatanController::class, 'destroy'])
         ->name('pendapatan.destroy');
 
-    // TARGET PENDAPATAN
     Route::post('/target', [TargetPendapatanController::class, 'store'])
         ->name('target.store');
 });
@@ -80,11 +136,16 @@ Route::middleware(['auth', 'role:admin_unit'])->group(function () {
 | PIMPINAN
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:pimpinan'])->group(function () {
-    Route::get('/dashboard-pimpinan', function () {
-        return view('pimpinan.dashboard');
-    })->name('pimpinan.dashboard');
-});
+Route::middleware(['auth', 'role:pimpinan'])
+    ->prefix('pimpinan')
+    ->group(function () {
+
+        Route::get('/beranda', 
+            [PendapatanPimpinanController::class, 'index']
+        )->name('pimpinan.beranda');
+
+    });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -97,4 +158,5 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
+
