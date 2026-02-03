@@ -10,6 +10,7 @@ use App\Http\Controllers\TargetPendapatanController;
 | ROOT
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', function () {
     if (!auth()->check()) {
         return redirect('/login');
