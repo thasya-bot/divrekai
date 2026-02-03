@@ -35,7 +35,7 @@
 
             <div>
                 <label class="block text-sm font-medium mb-2">
-                    Sumber / Keterangan
+                     / Keterangan
                 </label>
                 <input type="text" name="keterangan"
                     value="{{ $pendapatan->keterangan }}"
