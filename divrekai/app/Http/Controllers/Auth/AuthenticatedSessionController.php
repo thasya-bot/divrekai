@@ -31,11 +31,11 @@ class AuthenticatedSessionController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // AUTH PAKAI USERNAME
-        if (! Auth::attempt(
-            ['username' => $request->username, 'password' => $request->password],
-            $request->boolean('remember')
-        )) {
+        // AUTH TANPA REMEMBER ME
+        if (! Auth::attempt([
+            'username' => $request->username,
+            'password' => $request->password,
+        ])) {
             throw ValidationException::withMessages([
                 'username' => 'Username atau password salah.',
             ]);
@@ -60,4 +60,3 @@ class AuthenticatedSessionController extends Controller
         return redirect('/');
     }
 }
- 

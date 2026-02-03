@@ -42,47 +42,33 @@
                         </a>
                     </li>
                 @endif
+        @auth
+        <ul class="flex gap-8 text-[#231f5c] font-semibold items-center">
+            @if(auth()->user()->role->username === 'admin_pic')
+                <li><a href="/dashboard-admin">Dashboard Admin</a></li>
+            @endif
 
-                {{-- ADMIN PIC --}}
-                @if(auth()->user()->role->username === 'admin_pic')
-                    <li>
-                        <a href="{{ route('admin.pic.unit.index') }}"
-                        class="hover:text-orange-500 transition">
-                            KELOLA DATA UNIT
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.pic.users.index') }}"
-                            class="hover:text-orange-500 transition">
-                            KELOLA PENGGUNA
-                        </a>
+            @if(auth()->user()->role->username === 'admin_unit')
+                <li><a href="{{route('pendapatan.index')}}">LAPORAN</a></li>
+            @endif
 
-                    </li>
-                @endif
+            @if(auth()->user()->role->username === 'admin_unit')
+                <li><a href="{{route('pendapatan.input')}}">INPUT PENDAPATAN</a></li>
+            @endif
 
-                {{-- PIMPINAN --}}
-                @if(auth()->user()->role->username === 'pimpinan')
-                    <li>
-                        <a href="{{ route('pimpinan.dashboard') }}"
-                        class="hover:text-orange-500 transition">
-                            DASHBOARD
-                        </a>
-                    </li>
-                @endif
+            @if(auth()->user()->role->username === 'pimpinan')
+                <li><a href="/dashboard-pimpinan">Dashboard Pimpinan</a></li>
+            @endif
 
-                {{-- LOGOUT --}}
-                <li>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button class="hover:text-red-600 transition">
-                            LOGOUT
-                        </button>
-                    </form>
-                </li>
-
-            </ul>
-            @endauth
-        </div>
+            <li>
+                <form method="POST" action="{{ route('logout') }}" class="inline">
+                    @csrf
+                    <button class="text-red-600">LOGOUT</button>
+                </form>
+            </li>
+        </ul>
+        @endauth
+               
     </nav>
 
     {{-- CONTENT --}}
