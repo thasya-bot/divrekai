@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\AdminPIC\PendapatanUnitController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PendapatanController;
 use App\Http\Controllers\TargetPendapatanController;
+use App\Http\Controllers\AdminPIC\UnitController;
+use App\Http\Controllers\AdminPIC\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,7 +46,7 @@ Route::get('/redirect-dashboard', function () {
     }
 
     return match (auth()->user()->role->username) {
-        'admin_pic'  => redirect()->route('admin.dashboard'),
+        'admin_pic'  => redirect()->route('admin.pic.unit.index'),
         'admin_unit' => redirect()->route('pendapatan.index'),
         'pimpinan'   => redirect()->route('pimpinan.dashboard'),
         default      => redirect()->route('beranda'),
@@ -55,11 +58,48 @@ Route::get('/redirect-dashboard', function () {
 | ADMIN PIC
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:admin_pic'])->group(function () {
-    Route::get('/dashboard-admin', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
-});
+Route::middleware(['auth', 'role:admin_pic'])
+    ->prefix('admin-pic')
+    ->name('admin.pic.')
+    ->group(function () {
+
+        Route::get('/unit', [UnitController::class, 'index'])
+            ->name('unit.index');
+
+        Route::get('/unit/{unit}/pendapatan',
+            [PendapatanUnitController::class, 'index'])
+            ->name('unit.pendapatan');
+
+        Route::get('/pendapatan/{pendapatan}/edit',
+            [PendapatanUnitController::class, 'edit'])
+            ->name('pendapatan.edit');
+
+        Route::put('/pendapatan/{pendapatan}',
+            [PendapatanUnitController::class, 'update'])
+            ->name('pendapatan.update');
+
+        Route::delete('/pendapatan/{pendapatan}',
+            [PendapatanUnitController::class, 'destroy'])
+            ->name('pendapatan.destroy');
+
+             Route::get('/users', [UserController::class, 'index'])
+            ->name('users.index');
+
+        Route::get('/users/create', [UserController::class, 'create'])
+            ->name('users.create');
+
+        Route::post('/users', [UserController::class, 'store'])
+            ->name('users.store');
+
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])
+            ->name('users.edit');
+
+        Route::put('/users/{user}', [UserController::class, 'update'])
+            ->name('users.update');
+
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])
+            ->name('users.destroy');
+    });
 
 /*
 |--------------------------------------------------------------------------
@@ -107,6 +147,7 @@ Route::middleware(['auth', 'role:pimpinan'])->group(function () {
         return view('pimpinan.dashboard');
     })->name('pimpinan.dashboard');
 });
+
 
 /*
 |--------------------------------------------------------------------------
