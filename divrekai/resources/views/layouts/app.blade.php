@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <title>@yield('title', 'KAI DIVRE I SUMUT')</title>
 
-    {{-- TAILWIND --}}
-    @vite('resources/css/app.css')
+    {{-- TAILWIND + JS VITE --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- DATATABLES CSS --}}
+    <link rel="stylesheet"
+          href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 </head>
+
 <body class="font-sans bg-gray-100">
 
     {{-- NAVBAR --}}
@@ -15,6 +20,25 @@
             <img src="{{ asset('img/logo-kai.png') }}" class="h-28">
         </div>
 
+            {{-- MENU --}}
+            @auth
+            <ul class="flex items-center gap-10 text-sm font-semibold text-[#231f5c]">
+
+                {{-- ADMIN UNIT --}}
+                @if(auth()->user()->role->username === 'admin_unit')
+                    <li>
+                        <a href="{{ route('pendapatan.index') }}"
+                        class="hover:text-orange-500 transition">
+                            LAPORAN
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('pendapatan.input') }}"
+                        class="hover:text-orange-500 transition">
+                            INPUT PENDAPATAN
+                        </a>
+                    </li>
+                @endif
         @auth
         <ul class="flex gap-8 text-[#231f5c] font-semibold items-center">
             @if(auth()->user()->role->username === 'admin_pic')
@@ -82,16 +106,41 @@
             </li>
         </ul>
         @endauth
+               
     </nav>
   {{-- GARIS BIRU --}}
     <div class="h-3 bg-[#231f5c]"></div>
 
     {{-- CONTENT --}}
-    <main>
+    <main class="pt-0 pb-6">
         @yield('content')
       
     </body>
     </main>
 
+    {{-- JQUERY --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if(session('success'))
+    <script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: "{{ session('success') }}",
+        timer: 1800,
+        width: 250,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'rounded-lg px-3 py-2',
+            title: 'text-sm font-semibold text-[#231f5c]',
+            htmlContainer: 'text-xs text-gray-600'
+        }
+    });
+    </script>
+    @endif
+
+    {{-- DATATABLES JS --}}
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
