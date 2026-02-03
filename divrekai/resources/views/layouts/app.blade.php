@@ -30,8 +30,49 @@
             @endif
 
             @if(auth()->user()->role->username === 'pimpinan')
-                <li><a href="/dashboard-pimpinan">Dashboard Pimpinan</a></li>
+                <li><a href="/pimpinan/beranda">BERANDA</a></li>
             @endif
+            @if(auth()->user()->role->username === 'pimpinan')
+            <li class="relative group">
+
+                {{-- BUTTON --}}
+                <button class="flex items-center gap-1 hover:text-orange-600">
+                    LAPORAN UNIT
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                {{-- DROPDOWN --}}
+                <ul
+                    class="absolute left-0 mt-3 w-56 bg-white border rounded shadow-lg
+                        max-h-40 overflow-y-auto
+                        opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                        transition-all duration-200 z-50">
+
+                    {{-- SEMUA UNIT --}}
+                    <li class="border-b sticky top-0 bg-white z-10">
+                        <a href="{{ route('pimpinan.beranda') }}"
+                        class="block px-4 py-2 hover:bg-gray-100 font-semibold">
+                            Semua Unit
+                        </a>
+                    </li>
+
+                    {{-- LIST UNIT --}}
+                    @foreach($navbarUnits as $unit)
+                        <li>
+                            <a href="{{ route('pimpinan.beranda', ['unit_id' => $unit->id]) }}"
+                            class="block px-4 py-2 hover:bg-gray-100">
+                                {{ $unit->nama_unit }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </li>
+            @endif
+
 
             <li>
                 <form method="POST" action="{{ route('logout') }}" class="inline">
@@ -48,7 +89,7 @@
     {{-- CONTENT --}}
     <main>
         @yield('content')
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      
     </body>
     </main>
 

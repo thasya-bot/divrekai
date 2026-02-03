@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PendapatanController;
 use App\Http\Controllers\TargetPendapatanController;
+use App\Http\Controllers\PendapatanPimpinanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,7 +23,7 @@ Route::get('/', function () {
     return match (auth()->user()->role->username) {
         'admin_pic'  => redirect()->route('admin.dashboard'),
         'admin_unit' => redirect()->route('pendapatan.index'),
-        'pimpinan'   => redirect()->route('pimpinan.dashboard'),
+        'pimpinan'   => redirect()->route('pimpinan.beranda'),
         default      => abort(403),
     };
 });
@@ -72,11 +73,15 @@ Route::middleware(['auth', 'role:admin_unit'])->group(function () {
 | PIMPINAN
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:pimpinan'])->group(function () {
-    Route::get('/dashboard-pimpinan', function () {
-        return view('pimpinan.dashboard');
-    })->name('pimpinan.dashboard');
-});
+Route::middleware(['auth', 'role:pimpinan'])
+    ->prefix('pimpinan')
+    ->group(function () {
+
+        Route::get('/beranda', 
+            [PendapatanPimpinanController::class, 'index']
+        )->name('pimpinan.beranda');
+
+    });
 
 /*
 |--------------------------------------------------------------------------
@@ -88,5 +93,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 
 require __DIR__ . '/auth.php';

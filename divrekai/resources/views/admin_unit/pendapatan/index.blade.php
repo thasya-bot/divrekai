@@ -67,9 +67,11 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         {{-- PIE --}}
+
         <div class="bg-white rounded-xl shadow p-4 h-[260px] flex items-center justify-center">
-            <canvas id="pieChart" class="w-full h-full"></canvas>
+        <canvas id="pieChart" style="max-width:320px; max-height:260px;"></canvas>
         </div>
+
 
         {{-- BAR --}}
         <div class="bg-white rounded-xl shadow p-4 h-[260px] flex items-center justify-center">
@@ -90,15 +92,6 @@
 
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-console.log('pieCanvas:', document.getElementById('pieChart'));
-console.log('barCanvas:', document.getElementById('barChart'));
-console.log('ChartJS:', typeof Chart);
-</script>
-
-
 
     {{-- TABEL HARIAN --}}
     <form method="GET" id="filterForm"
@@ -492,51 +485,72 @@ console.log('ChartJS:', typeof Chart);
 </script>
 
     {{-- LOAD CHART.JS DULU --}}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
     {{-- SCRIPT GRAFIK --}}
- <script>
+<script>
 document.addEventListener('DOMContentLoaded', function () {
 
+    Chart.register(ChartDataLabels);
+ 
     const pieCtx = document.getElementById('pieChart');
     const barCtx = document.getElementById('barChart');
 
-    if (!pieCtx || !barCtx) {
-        console.error('Canvas chart tidak ditemukan');
-        return;
-    }
+    if (!pieCtx || !barCtx) return;
 
     // =====================
-    // PIE CHART (SUMBER)
+    // PIE CHART + PERSEN
     // =====================
-    new Chart(pieCtx, {
-        type: 'pie',
-        data: {
-            labels: @json($pieData->pluck('keterangan')),
-            datasets: [{
-                data: @json($pieData->pluck('total')),
-                backgroundColor: [
-                    '#1e1b4b',
-                    '#f97316',
-                    '#22c55e',
-                    '#64748b',
-                    '#ef4444'
-                ]
-            }]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    position: 'bottom'
+new Chart(pieCtx, {
+    type: 'pie',
+
+    // 🔥 TAMBAHKAN BARIS INI
+    plugins: [ChartDataLabels],
+
+    data: {
+        labels: @json($pieData->pluck('keterangan')),
+        datasets: [{
+            data: @json($pieData->pluck('total')),
+            backgroundColor: [
+                '#1e1b4b',
+                '#f97316',
+                '#22c55e',
+                '#64748b',
+                '#ef4444'
+            ]
+        }]
+    },
+    options: {
+        plugins: {
+            legend: {
+                position: 'left'
+            },
+            datalabels: {
+                display: true,
+                color: '#fff',
+                font: {
+                    weight: 'bold',
+                    size: 14
+                },
+                anchor: 'center',   // 🔥 WAJIB BIAR KELIATAN
+                align: 'center',    // 🔥 WAJIB BIAR KELIATAN
+                formatter: (value, ctx) => {
+                    const data = ctx.chart.data.datasets[0].data.map(Number);
+                    const total = data.reduce((a, b) => a + b, 0);
+                    if (!total) return '0%';
+                    return ((value / total) * 100).toFixed(0) + '%';
                 }
             }
         }
-    });
+    }
+});
 
     // =====================
     // BAR CHART (HARIAN)
     // =====================
-    new Chart(barCtx, {
+ new Chart(barCtx, {
         type: 'bar',
         data: {
             labels: {!! json_encode(
@@ -561,25 +575,26 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: true,      // 🔥 WAJIB
-                    position: 'bottom'  // 🔥 PINDAH KE BAWAH
+                    position: 'bottom'
+                },
+                datalabels: {
+                    display: false
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        callback: value =>
-                            'Rp ' + value.toLocaleString('id-ID')
+                        callback: val => 'Rp ' + val.toLocaleString('id-ID')
                     }
                 }
             }
         }
     });
-});
+
+}); // 🔥 INI YANG TADI HILANG
 </script>
-
 @endsection
-
